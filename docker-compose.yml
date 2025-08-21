@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: wellspend-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://wellspend:${DB_PASSWORD:-strongpassword123}@db:5432/wellspend?schema=public
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-your-secret-key-change-this}
+      - NEXTAUTH_URL=${APP_URL:-http://localhost:3000}
+      - UPLOAD_DIR=/app/uploads
+    volumes:
+      - uploads:/app/uploads
+      - ./uploads:/app/uploads # For development, remove in production
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - wellspend-network
+
+  db:
+    image: postgres:15-alpine
+    container_name: wellspend-db
+    environment:
+      - POSTGRES_DB=wellspend
+      - POSTGRES_USER=wellspend
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-strongpassword123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql # Optional: for initial setup
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wellspend -d wellspend"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - wellspend-network
+
+  # Optional: MinIO for S3-compatible object storage
+  minio:
+    image: minio/minio:latest
+    container_name: wellspend-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin123}
+    volumes:
+      - minio_data:/data
+    networks:
+      - wellspend-network
+    profiles:
+      - storage # Optional service, activate with --profile storage
+
+volumes:
+  postgres_data:
+  uploads:
+  minio_data:
+
+networks:
+  wellspend-network:
+    driver: bridge 

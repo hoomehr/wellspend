@@ -1,0 +1,176 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// SQLite doesn't support enums, using strings instead
+// Role: ADMIN, FINANCE, OPS
+// DataSource: CSV_UPLOAD, JIRA_API, NOTION_API, AWS_BILLING, MANUAL_ENTRY  
+// MetricType: COST, PRODUCTIVITY, EFFICIENCY, UTILIZATION
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String          @unique
+  emailVerified DateTime?
+  image         String?
+  password      String? // Hashed password for credentials provider
+  role          String          @default("OPS")
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  lastLoginAt   DateTime?
+  
+  accounts      Account[]
+  sessions      Session[]
+  uploadedData  UploadedData[]
+  
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model UploadedData {
+  id          String     @id @default(cuid())
+  fileName    String
+  originalName String
+  fileSize    Int
+  mimeType    String
+  dataSource  String
+  category    String // e.g., "billing", "hr", "productivity", "cloud-costs"
+  uploadedBy  String
+  uploadedAt  DateTime   @default(now())
+  processedAt DateTime?
+  isProcessed Boolean    @default(false)
+  metadata    String?    // JSON string for SQLite compatibility
+  errorLog    String? // Store processing errors
+  
+  user        User       @relation(fields: [uploadedBy], references: [id])
+  dataRecords DataRecord[]
+  
+  @@map("uploaded_data")
+}
+
+model DataRecord {
+  id             String       @id @default(cuid())
+  uploadId       String
+  recordIndex    Int // Position in the original file
+  rawData        String       // JSON string for SQLite compatibility
+  processedData  String       // JSON string for SQLite compatibility
+  amount         Float?       // For financial records
+  date           DateTime?    // Transaction/record date
+  category       String?
+  description    String?
+  tags           String       // Comma-separated tags for SQLite compatibility
+  createdAt      DateTime     @default(now())
+  
+  upload         UploadedData @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  
+  @@map("data_records")
+}
+
+model Metric {
+  id          String     @id @default(cuid())
+  name        String
+  type        String
+  value       Float
+  unit        String? // e.g., "USD", "hours", "percent"
+  period      String     // e.g., "2023-12", "Q4-2023", "2023"
+  category    String?    // e.g., "cloud-costs", "productivity"
+  subcategory String?    // e.g., "aws-ec2", "jira-tasks"
+  metadata    String?    // JSON string for SQLite compatibility
+  calculatedAt DateTime  @default(now())
+  
+  @@unique([name, type, period, category])
+  @@map("metrics")
+}
+
+model Recommendation {
+  id               String   @id @default(cuid())
+  title            String
+  description      String
+  category         String   // e.g., "cost-optimization", "productivity"
+  priority         String   // e.g., "high", "medium", "low"
+  potentialSavings Float?
+  estimatedEffort  String?  // e.g., "1 hour", "1 day", "1 week"
+  actionItems      String   // JSON array as string for SQLite compatibility
+  isImplemented    Boolean  @default(false)
+  implementedAt    DateTime?
+  validFrom        DateTime @default(now())
+  validUntil       DateTime?
+  metadata         String?    // JSON string for SQLite compatibility
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  @@map("recommendations")
+}
+
+model Integration {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g., "jira", "notion", "aws-billing"
+  displayName String   // Human-readable name
+  isEnabled   Boolean  @default(false)
+  config      String?  // JSON string for SQLite compatibility
+  lastSyncAt  DateTime?
+  nextSyncAt  DateTime?
+  syncFrequency String? // e.g., "daily", "weekly", "manual"
+  errorLog    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("integrations")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // e.g., "login", "upload", "view_data", "export"
+  resource  String?  // e.g., "user", "data", "recommendation"
+  resourceId String?
+  metadata  String?  // JSON string for SQLite compatibility
+  ipAddress String?
+  userAgent String?
+  timestamp DateTime @default(now())
+  
+  @@map("audit_logs")
+} 
