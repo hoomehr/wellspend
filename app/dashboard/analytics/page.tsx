@@ -997,12 +997,12 @@ export default function AnalyticsPage() {
               </CardContent>
             </Card>
             
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
                   <AlertTriangle className="h-5 w-5 text-orange-600" />
                   <span>Risk Analysis</span>
-                </CardTitle>
+              </CardTitle>
                 <CardDescription>Potential risks and mitigation strategies</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -1105,7 +1105,7 @@ export default function AnalyticsPage() {
                     </ul>
                   </div>
                 
-                <div className="space-y-4">
+                  <div className="space-y-4">
                   <h4 className="font-semibold flex items-center">
                     <Target className="h-4 w-4 mr-2 text-orange-600" />
                     Quality Metrics
@@ -1117,22 +1117,22 @@ export default function AnalyticsPage() {
                         Bug rate decreased
                       </span>
                       <span className="font-bold text-green-600">-18%</span>
-                    </li>
+                      </li>
                     <li className="flex items-center justify-between p-2 bg-blue-50 rounded">
                       <span className="flex items-center">
                         <ArrowUp className="h-3 w-3 text-blue-500 mr-2" />
                         Code coverage improved
                       </span>
                       <span className="font-bold text-blue-600">+7%</span>
-                    </li>
+                      </li>
                     <li className="flex items-center justify-between p-2 bg-green-50 rounded">
                       <span className="flex items-center">
                         <ArrowDown className="h-3 w-3 text-green-500 mr-2" />
                         Resolution time
                       </span>
                       <span className="font-bold text-green-600">-2.1h</span>
-                    </li>
-                  </ul>
+                      </li>
+                    </ul>
                 </div>
               </div>
             </CardContent>
