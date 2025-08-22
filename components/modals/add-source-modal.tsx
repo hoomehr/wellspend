@@ -182,11 +182,11 @@ export function AddSourceModal({ children, onSourceAdded }: AddSourceModalProps)
         </DialogHeader>
 
         <Tabs value={selectedIntegration} onValueChange={setSelectedIntegration} className="w-full">
-          <TabsList className="grid grid-cols-2 lg:grid-cols-4 mb-6">
+          <TabsList className="tabs-list-green grid grid-cols-2 lg:grid-cols-4 mb-6">
             {integrationTypes.map((integration) => {
               const IconComponent = integration.icon
               return (
-                <TabsTrigger key={integration.id} value={integration.id} className="flex items-center gap-2">
+                <TabsTrigger key={integration.id} value={integration.id} className="tabs-trigger-green flex items-center gap-2">
                   <IconComponent className="h-4 w-4" />
                   {integration.name}
                 </TabsTrigger>

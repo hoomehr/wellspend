@@ -115,10 +115,10 @@ export default function UploadPage() {
       )}
 
       <Tabs defaultValue="upload" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="upload">Upload Data</TabsTrigger>
-          <TabsTrigger value="templates">Data Templates</TabsTrigger>
-          <TabsTrigger value="history">Upload History</TabsTrigger>
+        <TabsList className="tabs-list-green">
+          <TabsTrigger value="upload" className="tabs-trigger-green">Upload Data</TabsTrigger>
+          <TabsTrigger value="templates" className="tabs-trigger-green">Data Templates</TabsTrigger>
+          <TabsTrigger value="history" className="tabs-trigger-green">Upload History</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upload" className="space-y-6">

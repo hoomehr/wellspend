@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Settings, User, Shield, Database, Bell, Zap, Brain, CreditCard } from "lucide-react"
+import { AiConfigModal } from "@/components/modals/ai-config-modal"
 
 export default function SettingsPage() {
   const [integrations, setIntegrations] = useState({
@@ -57,20 +58,24 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <div className="text-sm text-gray-500">
-          Configure your Wellspend preferences and integrations
+      {/* Header Section */}
+      <div className="gradient-green rounded-lg p-6 text-white card">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Settings</h1>
+            <p className="text-green-100">Configure your Wellspend preferences and integrations</p>
+          </div>
         </div>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="integrations">Integrations</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-          <TabsTrigger value="data">Data Management</TabsTrigger>
+        <TabsList className="tabs-list-green">
+          <TabsTrigger value="profile" className="tabs-trigger-green">Profile</TabsTrigger>
+          <TabsTrigger value="integrations" className="tabs-trigger-green">Integrations</TabsTrigger>
+          <TabsTrigger value="ai-analytics" className="tabs-trigger-green">AI Analytics</TabsTrigger>
+          <TabsTrigger value="notifications" className="tabs-trigger-green">Notifications</TabsTrigger>
+          <TabsTrigger value="security" className="tabs-trigger-green">Security</TabsTrigger>
+          <TabsTrigger value="data" className="tabs-trigger-green">Data Management</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile" className="space-y-6">
@@ -178,6 +183,156 @@ export default function SettingsPage() {
 
               <div className="pt-4 border-t">
                 <Button variant="outline">Configure API Keys</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ai-analytics" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Brain className="h-5 w-5" />
+                <span>AI-Powered Data Analysis</span>
+              </CardTitle>
+              <CardDescription>
+                Configure AI providers to analyze your data and generate insights
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Platform Pay-as-you-go Option */}
+              <div className="p-4 border-2 border-green-200 bg-green-50 rounded-lg">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start space-x-3">
+                    <div className="p-2 bg-green-500 rounded-lg">
+                      <CreditCard className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="font-semibold text-green-900">Wellspend AI Analytics (Recommended)</h3>
+                      <p className="text-sm text-green-700">
+                        Use our optimized AI models specifically trained for cost analysis and efficiency insights.
+                        Pay only for what you use - no API key management required.
+                      </p>
+                      <div className="flex items-center space-x-4 text-xs text-green-600">
+                        <span>• $0.02 per analysis</span>
+                        <span>• Multi-model ensemble</span>
+                        <span>• Cost optimization focused</span>
+                        <span>• No setup required</span>
+                      </div>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={aiIntegrations.platform.enabled}
+                    onCheckedChange={() => handleAiIntegrationToggle('platform')}
+                  />
+                </div>
+              </div>
+
+              <div className="text-sm text-gray-600 text-center py-2">
+                or configure your own AI providers below
+              </div>
+
+              {/* OpenAI Integration */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-green-500 rounded-lg">
+                    <Brain className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-medium">OpenAI (GPT-4)</h3>
+                    <p className="text-sm text-gray-600">Connect your OpenAI API for data analysis</p>
+                    {!aiIntegrations.openai.configured && aiIntegrations.openai.enabled && (
+                      <span className="text-xs text-orange-600">⚠️ API key required</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <AiConfigModal provider="openai">
+                    <Button variant="ghost" size="sm">
+                      {aiIntegrations.openai.configured ? 'Configure' : 'Setup'}
+                    </Button>
+                  </AiConfigModal>
+                  <Switch
+                    checked={aiIntegrations.openai.enabled}
+                    onCheckedChange={() => handleAiIntegrationToggle('openai')}
+                  />
+                </div>
+              </div>
+
+              {/* Claude Integration */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-purple-500 rounded-lg">
+                    <Brain className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-medium">Claude (Anthropic)</h3>
+                    <p className="text-sm text-gray-600">Connect your Anthropic API for advanced analysis</p>
+                    {!aiIntegrations.claude.configured && aiIntegrations.claude.enabled && (
+                      <span className="text-xs text-orange-600">⚠️ API key required</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <AiConfigModal provider="claude">
+                    <Button variant="ghost" size="sm">
+                      {aiIntegrations.claude.configured ? 'Configure' : 'Setup'}
+                    </Button>
+                  </AiConfigModal>
+                  <Switch
+                    checked={aiIntegrations.claude.enabled}
+                    onCheckedChange={() => handleAiIntegrationToggle('claude')}
+                  />
+                </div>
+              </div>
+
+              {/* Gemini Integration */}
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 bg-red-500 rounded-lg">
+                    <Brain className="h-5 w-5 text-white" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-medium">Google Gemini</h3>
+                    <p className="text-sm text-gray-600">Connect your Google AI API for data insights</p>
+                    {!aiIntegrations.gemini.configured && aiIntegrations.gemini.enabled && (
+                      <span className="text-xs text-orange-600">⚠️ API key required</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <AiConfigModal provider="gemini">
+                    <Button variant="ghost" size="sm">
+                      {aiIntegrations.gemini.configured ? 'Configure' : 'Setup'}
+                    </Button>
+                  </AiConfigModal>
+                  <Switch
+                    checked={aiIntegrations.gemini.enabled}
+                    onCheckedChange={() => handleAiIntegrationToggle('gemini')}
+                  />
+                </div>
+              </div>
+
+              {/* Usage and Billing Info */}
+              <div className="pt-4 border-t">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="font-semibold text-lg">1,247</div>
+                    <div className="text-sm text-gray-600">Analyses This Month</div>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="font-semibold text-lg">$24.94</div>
+                    <div className="text-sm text-gray-600">Current Month Cost</div>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="font-semibold text-lg">$187.50</div>
+                    <div className="text-sm text-gray-600">Estimated Savings</div>
+                  </div>
+                </div>
+                <div className="flex space-x-2">
+                  <Button variant="outline">View Usage Details</Button>
+                  <Button variant="outline">Configure API Keys</Button>
+                </div>
               </div>
             </CardContent>
           </Card>

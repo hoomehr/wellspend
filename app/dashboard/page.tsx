@@ -77,10 +77,16 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <div className="text-sm text-gray-500">
-          Last updated: {new Date().toLocaleString()}
+      {/* Header Section */}
+      <div className="gradient-green rounded-lg p-6 text-white card">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Wellspend Dashboard</h1>
+            <p className="text-green-100">Privacy-first cost optimization and efficiency insights</p>
+          </div>
+          <div className="text-sm text-green-100">
+            Last updated: {new Date().toLocaleString()}
+          </div>
         </div>
       </div>
 
@@ -93,11 +99,11 @@ export default function DashboardPage() {
       />
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="costs">Cost Analysis</TabsTrigger>
-          <TabsTrigger value="productivity">Productivity</TabsTrigger>
-          <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+        <TabsList className="tabs-list-green">
+          <TabsTrigger value="overview" className="tabs-trigger-green">Overview</TabsTrigger>
+          <TabsTrigger value="costs" className="tabs-trigger-green">Cost Analysis</TabsTrigger>
+          <TabsTrigger value="productivity" className="tabs-trigger-green">Productivity</TabsTrigger>
+          <TabsTrigger value="recommendations" className="tabs-trigger-green">Recommendations</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">

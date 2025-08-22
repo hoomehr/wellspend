@@ -82,11 +82,11 @@ export default function HelpPage() {
       </div>
 
       <Tabs defaultValue="getting-started" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="getting-started">Getting Started</TabsTrigger>
-          <TabsTrigger value="faq">FAQ</TabsTrigger>
-          <TabsTrigger value="privacy">Privacy & Security</TabsTrigger>
-          <TabsTrigger value="support">Support</TabsTrigger>
+        <TabsList className="tabs-list-green">
+          <TabsTrigger value="getting-started" className="tabs-trigger-green">Getting Started</TabsTrigger>
+          <TabsTrigger value="faq" className="tabs-trigger-green">FAQ</TabsTrigger>
+          <TabsTrigger value="privacy" className="tabs-trigger-green">Privacy & Security</TabsTrigger>
+          <TabsTrigger value="support" className="tabs-trigger-green">Support</TabsTrigger>
         </TabsList>
 
         <TabsContent value="getting-started" className="space-y-6">

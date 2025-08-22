@@ -42,14 +42,14 @@ export function Sidebar() {
                   href={item.href}
                   className={cn(
                     isActive
-                      ? "bg-blue-50 border-blue-500 text-blue-700"
+                      ? "bg-green-50 border-green-500 text-green-700"
                       : "border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900",
                     "group flex items-center pl-2 py-2 text-sm font-medium border-l-4 transition-colors"
                   )}
                 >
                   <item.icon
                     className={cn(
-                      isActive ? "text-blue-500" : "text-gray-400 group-hover:text-gray-500",
+                      isActive ? "text-green-500" : "text-gray-400 group-hover:text-gray-500",
                       "mr-3 h-5 w-5"
                     )}
                     aria-hidden="true"

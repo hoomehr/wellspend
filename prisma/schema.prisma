@@ -126,21 +126,24 @@ model Metric {
 }
 
 model Recommendation {
-  id               String   @id @default(cuid())
+  id               String       @id @default(cuid())
   title            String
   description      String
-  category         String   // e.g., "cost-optimization", "productivity"
-  priority         String   // e.g., "high", "medium", "low"
+  category         String       // e.g., "cost-optimization", "productivity"
+  priority         String       // e.g., "high", "medium", "low"
   potentialSavings Float?
-  estimatedEffort  String?  // e.g., "1 hour", "1 day", "1 week"
-  actionItems      String   // JSON array as string for SQLite compatibility
-  isImplemented    Boolean  @default(false)
+  estimatedEffort  String?      // e.g., "1 hour", "1 day", "1 week"
+  actionItems      String       // JSON array as string for SQLite compatibility
+  isImplemented    Boolean      @default(false)
   implementedAt    DateTime?
-  validFrom        DateTime @default(now())
+  validFrom        DateTime     @default(now())
   validUntil       DateTime?
-  metadata         String?    // JSON string for SQLite compatibility
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  metadata         String?      // JSON string for SQLite compatibility
+  analysisRunId    String?      // Link to the analysis run that generated this
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  
+  analysisRun      AnalysisRun? @relation("AnalysisRecommendations", fields: [analysisRunId], references: [id])
   
   @@map("recommendations")
 }
@@ -173,4 +176,95 @@ model AuditLog {
   timestamp DateTime @default(now())
   
   @@map("audit_logs")
+}
+
+model AiProvider {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g., "openai", "claude", "gemini", "wellspend"
+  displayName String   // e.g., "OpenAI GPT-4", "Claude 3", "Google Gemini"
+  isEnabled   Boolean  @default(false)
+  apiKey      String?  // Encrypted API key
+  baseUrl     String?  // Custom API endpoint
+  config      String?  // JSON string for provider-specific settings
+  usageLimit  Float?   // Monthly usage limit in USD
+  currentUsage Float   @default(0) // Current month usage
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  analysisRuns AnalysisRun[]
+  
+  @@map("ai_providers")
+}
+
+model AnalyticsTechnique {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g., "cost_anomaly_detection", "predictive_trends"
+  displayName String   // e.g., "Cost Anomaly Detection"
+  description String
+  category    String   // e.g., "cost", "productivity", "efficiency"
+  isEnabled   Boolean  @default(false)
+  config      String?  // JSON string for technique-specific settings
+  priority    Int      @default(5) // 1-10 priority for execution
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  analysisRuns AnalysisRun[]
+  
+  @@map("analytics_techniques")
+}
+
+model AnalysisRun {
+  id            String             @id @default(cuid())
+  techniqueId   String
+  aiProviderId  String?
+  status        String             @default("pending") // pending, running, completed, failed
+  inputData     String             // JSON string with input parameters
+  results       String?            // JSON string with analysis results
+  insights      String?            // AI-generated insights
+  confidence    Float?             // Confidence score 0-1
+  executionTime Int?               // Execution time in milliseconds
+  errorMessage  String?
+  createdAt     DateTime           @default(now())
+  completedAt   DateTime?
+  
+  technique     AnalyticsTechnique @relation(fields: [techniqueId], references: [id])
+  aiProvider    AiProvider?        @relation(fields: [aiProviderId], references: [id])
+  recommendations Recommendation[] @relation("AnalysisRecommendations")
+  
+  @@map("analysis_runs")
+}
+
+model DashboardWidget {
+  id          String   @id @default(cuid())
+  name        String   @unique // e.g., "total_costs", "productivity_score"
+  displayName String   // e.g., "Total Monthly Costs"
+  type        String   // e.g., "metric", "chart", "table"
+  position    Int      // Display order
+  size        String   @default("md") // sm, md, lg, xl
+  isVisible   Boolean  @default(true)
+  config      String?  // JSON string for widget-specific settings
+  dataQuery   String?  // SQL or aggregation query
+  refreshRate Int      @default(300) // Refresh interval in seconds
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("dashboard_widgets")
+}
+
+model Alert {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  type        String   // e.g., "threshold", "anomaly", "trend"
+  severity    String   // e.g., "low", "medium", "high", "critical"
+  isActive    Boolean  @default(true)
+  conditions  String   // JSON string with alert conditions
+  lastTriggered DateTime?
+  triggerCount Int     @default(0)
+  notificationChannels String? // JSON array of notification methods
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("alerts")
 } 
