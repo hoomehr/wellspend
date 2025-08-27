@@ -155,14 +155,33 @@ export default async function HomePage() {
                 <h3 className="text-xl font-semibold text-gray-800 mb-2">
                   Interactive Dashboard Demo
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-4">
                   Explore cost trends, productivity metrics, and optimization recommendations
                 </p>
+                
+                {/* Demo Credentials Card */}
+                <div className="bg-white rounded-lg p-4 mb-6 max-w-md mx-auto border">
+                  <h4 className="font-semibold text-gray-800 mb-2">Demo Credentials</h4>
+                  <div className="text-sm text-left space-y-1">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Email:</span>
+                      <span className="font-mono text-blue-600">demo@wellspend.com</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Password:</span>
+                      <span className="font-mono text-blue-600">demo123456</span>
+                    </div>
+                  </div>
+                </div>
+                
                 <Link href="/signin">
-                  <Button size="lg">
-                    Try the Demo
+                  <Button size="lg" className="px-8">
+                    Try the Demo →
                   </Button>
                 </Link>
+                <p className="text-xs text-gray-500 mt-2">
+                  Sign in with the credentials above to explore the full platform
+                </p>
               </div>
             </div>
           </div>

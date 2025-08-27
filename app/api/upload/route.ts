@@ -65,8 +65,8 @@ export async function POST(req: NextRequest) {
         originalName: file.name,
         fileSize: file.size,
         mimeType: file.type,
-        dataSource: dataSource as any,
-        category,
+        dataSource: dataSource || 'CSV_UPLOAD',
+        category: category || 'general',
         uploadedBy: session.user.id,
       }
     })
@@ -94,13 +94,13 @@ export async function POST(req: NextRequest) {
       const dataRecords = parsedData.map((row, index) => ({
         uploadId: uploadRecord.id,
         recordIndex: index,
-        rawData: row,
-        processedData: processDataRow(row, category),
+        rawData: JSON.stringify(row),
+        processedData: JSON.stringify(processDataRow(row, category || 'general')),
         amount: extractAmount(row),
         date: extractDate(row),
-        category: category,
+        category: category || 'general',
         description: extractDescription(row),
-        tags: generateTags(row, category)
+        tags: generateTags(row, category || 'general')
       }))
 
       await db.dataRecord.createMany({
@@ -116,8 +116,8 @@ export async function POST(req: NextRequest) {
         }
       })
 
-      // TODO: Generate metrics from processed data
-      await generateMetricsFromData(dataRecords, category)
+      // Generate metrics from processed data
+      await generateMetricsFromData(dataRecords, category || 'general')
 
       return NextResponse.json({
         message: "File uploaded and processed successfully",
@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
         recordsProcessed: dataRecords.length
       })
 
-    } catch (processingError) {
+    } catch (processingError: any) {
       console.error("File processing error:", processingError)
       
       // Update upload record with error
@@ -158,68 +158,123 @@ function processDataRow(row: any, category: string): any {
   const processed = { ...row }
   
   // Common field mappings
-  const fieldMappings = {
-    'amount': ['amount', 'cost', 'price', 'total', 'value'],
-    'date': ['date', 'timestamp', 'created_at', 'time'],
-    'description': ['description', 'summary', 'title', 'name']
+  const fieldMappings: { [key: string]: string[] } = {
+    'amount': ['amount', 'cost', 'price', 'total', 'value', 'sum'],
+    'date': ['date', 'created_at', 'timestamp', 'time', 'when'],
+    'description': ['description', 'desc', 'name', 'title', 'label'],
+    'category': ['category', 'type', 'kind', 'group', 'classification']
   }
 
-  for (const [standardField, variations] of Object.entries(fieldMappings)) {
-    for (const variation of variations) {
-      if (row[variation] && !processed[standardField]) {
-        processed[standardField] = row[variation]
+  // Normalize field names
+  Object.keys(fieldMappings).forEach(standardField => {
+    const possibleFields = fieldMappings[standardField]
+    for (const field of possibleFields) {
+      if (row[field] && !processed[standardField]) {
+        processed[standardField] = row[field]
         break
       }
     }
-  }
+  })
 
   return processed
 }
 
 function extractAmount(row: any): number | null {
-  const amountFields = ['amount', 'cost', 'price', 'total', 'value']
+  const amountFields = ['amount', 'cost', 'price', 'total', 'value', 'sum']
+  
   for (const field of amountFields) {
     if (row[field]) {
-      const amount = parseFloat(String(row[field]).replace(/[^0-9.-]/g, ''))
-      if (!isNaN(amount)) return amount
+      const value = typeof row[field] === 'string' 
+        ? parseFloat(row[field].replace(/[^0-9.-]/g, ''))
+        : parseFloat(row[field])
+      
+      if (!isNaN(value)) return value
     }
   }
+  
   return null
 }
 
 function extractDate(row: any): Date | null {
-  const dateFields = ['date', 'timestamp', 'created_at', 'time']
+  const dateFields = ['date', 'created_at', 'timestamp', 'time', 'when']
+  
   for (const field of dateFields) {
     if (row[field]) {
       const date = new Date(row[field])
       if (!isNaN(date.getTime())) return date
     }
   }
+  
   return null
 }
 
 function extractDescription(row: any): string | null {
-  const descFields = ['description', 'summary', 'title', 'name']
+  const descFields = ['description', 'desc', 'name', 'title', 'label', 'service', 'item']
+  
   for (const field of descFields) {
-    if (row[field]) return String(row[field])
+    if (row[field] && typeof row[field] === 'string') {
+      return row[field].trim()
+    }
   }
+  
   return null
 }
 
-function generateTags(row: any, category: string): string[] {
+function generateTags(row: any, category: string): string {
   const tags = [category]
   
-  // Add tags based on content
-  if (row.department) tags.push(`dept:${row.department}`)
-  if (row.team) tags.push(`team:${row.team}`)
-  if (row.project) tags.push(`project:${row.project}`)
-  if (row.status) tags.push(`status:${row.status}`)
+  // Add category-specific tags
+  if (row.service) tags.push(row.service.toLowerCase())
+  if (row.department) tags.push(row.department.toLowerCase())
+  if (row.type) tags.push(row.type.toLowerCase())
+  if (row.vendor) tags.push(row.vendor.toLowerCase())
   
-  return tags
+  return tags.join(',')
 }
 
-async function generateMetricsFromData(dataRecords: any[], category: string) {
-  // TODO: Implement metric generation logic
-  // This would analyze the uploaded data and create/update metrics
-  console.log(`Generating metrics for ${dataRecords.length} records in category: ${category}`)
-} 
+async function generateMetricsFromData(dataRecords: any[], category: string): Promise<void> {
+  try {
+    // Calculate basic metrics from the uploaded data
+    const currentDate = new Date()
+    const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`
+    
+    // Calculate total amount for this category
+    const totalAmount = dataRecords.reduce((sum, record) => {
+      return sum + (record.amount || 0)
+    }, 0)
+
+    if (totalAmount > 0) {
+      // Update or create metric for this category
+      await db.metric.upsert({
+        where: {
+          name_type_period_category: {
+            name: `${category}_costs`,
+            type: 'COST',
+            period: currentMonth,
+            category: category
+          }
+        },
+        update: {
+          value: totalAmount,
+          calculatedAt: new Date()
+        },
+        create: {
+          name: `${category}_costs`,
+          type: 'COST',
+          value: totalAmount,
+          unit: 'USD',
+          period: currentMonth,
+          category: category,
+          metadata: JSON.stringify({
+            recordCount: dataRecords.length,
+            source: 'upload'
+          })
+        }
+      })
+
+      console.log(`Generated metric for ${category}: $${totalAmount}`)
+    }
+  } catch (error) {
+    console.error('Error generating metrics:', error)
+  }
+}
